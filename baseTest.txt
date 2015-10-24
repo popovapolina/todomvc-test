@@ -1,0 +1,93 @@
+# Test suite verifies each field of the form on todomvc page
+
+*** Settings ***
+Library    Selenium2Library
+Library    Collections
+Resource     ./resources/ManageTasks.txt
+Resource     ./resources/Constants.txt
+
+Suite Setup     Open Todomvc 
+Suite Teardown  Close Browser
+
+
+*** Variables ***
+
+
+${TASK_LENGTH}      20
+
+${X_COMPLETED}      5
+${X_ACTIVE}         5
+ 
+${LIST_SIZE}        10
+${SLICE_SIZE}       3  #less than ${LIST_SIZE} 
+
+
+*** Keywords ***
+
+
+
+*** Test Cases ***
+
+#Default view
+
+Try To Add Empty Task
+    Input Text     xpath=${INPUT_NEW_TODO}     ${EMPTY}
+    Press Key      xpath=${INPUT_NEW_TODO}     ${ENTER_KEY} 
+    Number Of Tasks Should Be  0
+
+#Add Task With the same name
+
+#Reload the page
+
+Complete All, Clear Completed
+  @{TASKS}=     Add X Random Tasks  ${X_ACTIVE} 
+  Complete All
+  Completed List Should Be  @{TASKS}
+  Counter Value Should Be   0
+  Clear Completed
+  Tasks List Should Be       @{EMPTY}
+  [Teardown]  Clear All
+
+
+Complete Some, Clear Completed
+  @{TASKS}=     Add X Random Tasks  ${LIST_SIZE} 
+  @{COMPLETED_TASKS}=  Get Slice From List  ${TASKS}  0  ${SLICE_SIZE}
+  Mark Tasks As Completed   @{COMPLETED_TASKS}
+  Completed List Should Be  @{COMPLETED_TASKS}
+  ${COUNTER}=  Evaluate  int(${LIST_SIZE})-int(${SLICE_SIZE})
+  Counter Value Should Be  ${COUNTER} 
+  Clear Completed
+  @{ACTIVE_TASKS}=  Get Slice From List  ${TASKS}  ${SLICE_SIZE}
+  Tasks List Should Be      @{ACTIVE_TASKS}
+  [Teardown]  Clear All
+
+
+Display By Filter 
+  @{ACTIVE_TASKS}=     Add X Random Tasks  ${X_ACTIVE}  
+  @{COMPLETED_TASKS}=  Add X Random Tasks And Make Them Completed   ${X_COMPLETED}
+  @{ALL_TASKS}        Combine Lists  ${ACTIVE_TASKS}  ${COMPLETED_TASKS}
+  Filter Tasks     Active
+  Tasks List Should Be  @{ACTIVE_TASKS}
+  Filter Tasks     Completed
+  Tasks List Should Be  @{COMPLETED_TASKS}
+  Filter Tasks     All
+  Tasks List Should Be  @{ALL_TASKS}
+  [Teardown]  Clear All
+
+
+Check Counter When Completing
+   ${TASKS}=  Add X random Tasks   ${LIST_SIZE}
+   :FOR  ${N}  in range  0  ${LIST_SIZE}
+   \  Number Of Completed Tasks Should Be   ${N}
+   \  ${COUNTER}=  Evaluate  int(${LIST_SIZE})-int(${N})
+   \  Counter Value Should Be         ${COUNTER}
+   \  ${TASK}=  Get From List         ${TASKS}   ${N}
+   \  Mark Task As Completed          ${TASK} 
+   [Teardown]  Clear All
+
+#Check Counter When Removing
+#Remove Completed Task  #check counter
+#Remove Active Task   #check counter
+
+
+
