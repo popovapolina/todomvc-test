@@ -1,0 +1,34 @@
+# Test suite verifies processing of various strings using as Task Name Field on the main form of the todomvc page
+
+
+*** Settings ***
+Library    Selenium2Library
+Library    Collections
+Resource     ./resources/ManageTasks.txt
+Resource     ./resources/Constants.txt
+
+Suite Setup     Open Todomvc 
+Test Template   Add Task And Check It
+Suite Teardown  Close Browser
+
+
+*** Variables ***
+
+
+*** Keywords ***
+
+Add Task And Check It
+   [Arguments]   ${TASK}
+   Add Task      ${TASK}
+   List Should Contain Task    ${TASK}
+   [Teardown]    Remove Task   ${TASK}
+
+*** Test Cases ***          ${TASK}
+
+Valid Name                  Test Test Test Test Test
+Name with HTML tags         <b>bold</b> <i>italic</i> <br>
+Name with SQL Injection     ; DROP TABLE TASK;
+Too Long Name               Lorem ipsum dolor sit amet, nonummy ligula volutpat hac integer nonummy. Suspendisse ultricies, congue etiam tellus, erat libero, nulla eleifend, mauris pellentesque. Suspendisse integer praesent vel, integer gravida mauris, fringilla vehicula lacinia non
+Special Symbols             "~!@#$%^&*()_+=-`,./?><;:\[]{}|"
+Leading spaces              ${SPACE}${SPACE}${SPACE}Test${SPACE}${SPACE}${SPACE}
+

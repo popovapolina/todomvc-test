@@ -1,0 +1,210 @@
+# Resource contains common keywords using in test suites
+
+*** Settings ***
+
+Library    Selenium2Library
+Library    Collections
+Library    String
+
+*** Keywords ***
+
+#Keywords getting Xpath
+
+Xpath Clear Completed
+   [Return]   ${XPATH}
+   ${XPATH}=  Set Variable  //footer/button[@class='clear-completed']
+
+Xpath Some Task
+   [Return]    ${XPATH}
+   ${XPATH}=  Set Variable  //ul[@class='todo-list']/li   
+
+Xpath Some Completed Task
+   [Return]    ${XPATH}
+   ${XPATH_SOME_TASK}=  Xpath Some Task
+   ${XPATH}=  Set Variable  ${XPATH_SOME_TASK}[@class='completed']
+
+Xpath Task Label
+   [Arguments]  ${TASK}
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  ${TODO_LIST}/li/*/label[text()='${TASK.strip()}']
+
+Xpath Task Div
+   [Arguments]  ${TASK}
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  //div[label[text()='${TASK.strip()}']]   
+
+Xpath Task Destroy
+   [Arguments]  ${TASK}
+   [Return]     ${XPATH}
+   ${XPATH_TASK_DIV}=  Xpath Task Div  ${TASK}
+   ${XPATH}=  Set Variable  ${XPATH_TASK_DIV}/button[@class='destroy']
+
+Xpath Task Toggle
+   [Arguments]  ${TASK}
+   [Return]     ${XPATH}
+   ${XPATH_TASK_DIV}=  Xpath Task Div  ${TASK}
+   ${XPATH}=  Set Variable  ${XPATH_TASK_DIV}/input[@class='toggle']   
+
+Xpath Completed Task
+   [Arguments]  ${TASK}
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  //li[div[label[text()='${TASK.strip()}']]][@class='completed']   
+
+Xpath Complete All
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  //input[@class='toggle-all']   
+
+Xpath Counter
+   [Arguments]  ${N}
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  //span[@class='todo-count']/strong[text()='${N}']
+
+Xpath Filter
+   [Arguments]  ${FILTER}
+   [Return]     ${XPATH}
+   ${XPATH}=  Set Variable  //ul[@class='filters']/li/a[text()='${FILTER}']   
+
+
+#Starting keywords
+
+Open Todomvc
+    Open Browser    ${URL}    ${BROWSER}
+    Wait Until Page Contains Element    xpath=${INPUT_NEW_TODO}   #Check that required page is opened
+
+
+#Tasks manipulation keywords
+
+Add Task
+    [Arguments]    ${TASK}
+    Input Text     xpath=${INPUT_NEW_TODO}     ${TASK}
+    Press Key      xpath=${INPUT_NEW_TODO}     ${ENTER_KEY}
+    List Should Contain Task                   ${TASK}
+
+Add Tasks
+    [Arguments]    @{TASKS}
+    :FOR  ${TASK}  IN  @{TASKS}
+    \   Add Task       ${TASK}
+    Tasks List Should Be   @{TASKS}
+
+Add X Random Tasks
+    [Arguments]  ${X}
+    [Return]     @{TASKS}
+    @{TASKS}    Create List
+    :FOR  ${I}  IN RANGE  0  ${X}
+    \  ${TASK}=  Generate Random String    ${TASK_LENGTH}
+    \  Add Task    ${TASK}
+    \  Append To List  ${TASKS}   ${TASK}
+    
+
+Add X Random Tasks And Make Them Completed
+   [Arguments]    ${X}
+   [Return]       ${TASKS}
+   ${TASKS}=      Add X Random Tasks  ${X}
+   Mark Tasks As Completed            @{TASKS}
+
+Mark Task As Completed
+    [Arguments]  ${TASK}
+    ${XPATH}=    Xpath Task Toggle  ${TASK}
+    Click Element                    ${XPATH}
+    Task Should Be Completed         ${TASK}
+
+Mark Tasks As Completed 
+    [Arguments]    @{TASKS}
+    :FOR  ${TASK}  IN  @{TASKS}
+    \   Mark Task As Completed       ${TASK}
+
+Complete All
+    ${XPATH}=  Xpath Complete All
+    Element Should Be Visible         xpath=${XPATH}
+    Click Element                     xpath=${XPATH}
+
+Get List Of 
+    [Arguments]  ${XPATH}
+    [Return]     @{LIST}
+    ${COUNT}=    Get Matching Xpath Count    ${XPATH}
+    @{LIST}     Create List
+    :FOR    ${I}    IN RANGE    1    ${COUNT} + 1
+    \    ${ITEM}   Get Text    xpath=(${XPATH})[${I}]
+    \    Append To List    ${LIST}    ${ITEM}
+
+Get List Of Tasks
+    [Return]   @{TASKS}
+    ${XPATH}=  Xpath Some Task
+    @{TASKS}=  Get List Of  ${XPATH}
+
+Get List Of Completed Tasks
+    [Return]   @{TASKS}
+    ${XPATH}=  Xpath Some Completed Task
+    @{TASKS}=  Get List Of  ${XPATH}
+
+Filter Tasks
+   [Arguments]   ${FILTER}
+   ${XPATH}=  Xpath Filter  ${FILTER}
+   Element Should Be Visible   xpath=${XPATH}
+   Click Element               xpath=${XPATH}
+
+Remove Task       
+    [Arguments]  ${TASK}
+    ${XPATH_TASK}       Xpath Task Label     ${TASK}
+    ${XPATH_DESTROY}    Xpath Task Destroy  ${TASK}
+    Mouse Over                         ${XPATH_TASK} 
+    Click Element                      ${XPATH_DESTROY}
+    List Should Not Contain Task       ${TASK}
+
+Remove Tasks
+    [Arguments]  @{TASKS}
+    :FOR   ${TASK}   IN   @{TASKS}
+    \   Remove Task       ${TASK}
+
+Clear Completed
+   ${XPATH}=  Xpath Clear Completed 
+   Element Should Be Visible   xpath=${XPATH}  
+   Click Element               xpath=${XPATH}  
+   Number Of Completed Tasks Should Be  0
+
+Clear All
+   @{TASKS}=  Get List Of Tasks
+   Remove Tasks  @{TASKS}
+
+#Verification keywords
+
+List Should Contain Task
+    [Arguments]    ${TASK}
+    ${XPATH}    Xpath Task Label  ${TASK}
+    Page Should Contain Element    xpath=${XPATH} 
+
+List Should Not Contain Task
+    [Arguments]    ${TASK}
+    ${XPATH}    Xpath Task Label  ${TASK}
+    Page Should Not Contain Element    xpath=${XPATH}    
+
+
+Task Should Be Completed
+    [Arguments]  ${TASK}
+    ${XPATH}=  Xpath Completed Task  ${TASK}
+    Page Should Contain Element      xpath=${XPATH}
+
+Number Of Completed Tasks Should Be
+    [Arguments]  ${X}
+    ${XPATH}=  Xpath Some Completed Task
+    Xpath Should Match X Times      ${XPATH}  ${X}
+
+Number Of Tasks Should Be
+    [Arguments]  ${X}
+    ${XPATH}=  Xpath Some Task
+    Xpath Should Match X Times      ${XPATH}  ${X}
+
+Tasks List Should Be 
+    [Arguments]    @{TASKS}
+    @{TASKS_ON_PAGE}=  Get List Of Tasks
+    Lists Should Be Equal    ${TASKS}  ${TASKS_ON_PAGE}
+
+Completed List Should Be 
+    [Arguments]    @{TASKS}
+    @{TASKS_ON_PAGE}=  Get List Of Completed Tasks
+    Lists Should Be Equal    ${TASKS}  ${TASKS_ON_PAGE}
+
+Counter Value Should Be
+    [Arguments]  ${N}
+    ${XPATH}=    Xpath Counter  ${N}
+    Page Should Contain Element        xpath=${XPATH}

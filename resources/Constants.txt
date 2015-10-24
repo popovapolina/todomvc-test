@@ -1,0 +1,9 @@
+# Resource contains constant variables common for several test suites
+
+*** Variables ***
+${URL}              http://todomvc.com/examples/react/#/
+${BROWSER}          ff
+
+${INPUT_NEW_TODO}   //input
+${ENTER_KEY}        \\\13
+${TODO_LIST}        //ul[@class='todo-list']
