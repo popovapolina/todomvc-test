@@ -6,6 +6,13 @@ Library    Selenium2Library
 Library    Collections
 Library    String
 
+*** Variables ***
+
+${INPUT_NEW_TODO}   //input[@class='new-todo']
+${INPUT_EDIT_TODO}   //input[@class='edit']
+${ENTER_KEY}        \\\13
+${TODO_LIST}        //ul[@class='todo-list']
+
 *** Keywords ***
 
 #Keywords getting Xpath
@@ -94,7 +101,7 @@ Add X Random Tasks
     \  ${TASK}=  Generate Random String    ${TASK_LENGTH}
     \  Add Task    ${TASK}
     \  Append To List  ${TASKS}   ${TASK}
-    
+
 
 Add X Random Tasks And Make Them Completed
    [Arguments]    ${X}
@@ -112,6 +119,15 @@ Mark Tasks As Completed
     [Arguments]    @{TASKS}
     :FOR  ${TASK}  IN  @{TASKS}
     \   Mark Task As Completed       ${TASK}
+
+Edit Task
+    [Arguments]   ${TASK}  ${EDITED_TASK}
+    ${XPATH}=  Xpath Task Label  ${TASK}
+    Double Click Element         ${XPATH}
+    Wait Until Page Contains Element  ${INPUT_EDIT_TODO}
+    Input Text                   ${INPUT_EDIT_TODO}   ${EDITED_TASK}
+    Press Key                    ${INPUT_EDIT_TODO}   ${ENTER_KEY}
+    List Should Contain Task     ${EDITED_TASK}
 
 Complete All
     ${XPATH}=  Xpath Complete All

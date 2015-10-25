@@ -12,15 +12,15 @@ Suite Teardown  Close Browser
 
 *** Variables ***
 
+${TASK_LENGTH}       20
 
-${TASK_LENGTH}      20
-
-${X_COMPLETED}      5
-${X_ACTIVE}         5
+${X_COMPLETED}       5
+${X_ACTIVE}          5
  
-${LIST_SIZE}        10
-${SLICE_SIZE}       3  #less than ${LIST_SIZE} 
-
+${LIST_SIZE}         10
+${SLICE_SIZE}        3  #must be less than ${LIST_SIZE} 
+${TEST_TASK}         Just Do It
+${EDITED_TEST_TASK}  Just Do It Now!!!
 
 *** Keywords ***
 
@@ -28,16 +28,17 @@ ${SLICE_SIZE}       3  #less than ${LIST_SIZE}
 
 *** Test Cases ***
 
-#Default view
 
 Try To Add Empty Task
     Input Text     xpath=${INPUT_NEW_TODO}     ${EMPTY}
     Press Key      xpath=${INPUT_NEW_TODO}     ${ENTER_KEY} 
     Number Of Tasks Should Be  0
 
-#Add Task With the same name
-
-#Reload the page
+Add, Edit, Reload Page
+  Add Task   ${TEST_TASK}
+  Edit Task  ${TEST_TASK}   ${EDITED_TEST_TASK}
+  Reload Page
+  [Teardown]  Clear All
 
 Complete All, Clear Completed
   @{TASKS}=     Add X Random Tasks  ${X_ACTIVE} 
@@ -85,9 +86,7 @@ Check Counter When Completing
    \  Mark Task As Completed          ${TASK} 
    [Teardown]  Clear All
 
-#Check Counter When Removing
-#Remove Completed Task  #check counter
-#Remove Active Task   #check counter
+
 
 
 
