@@ -1,7 +1,9 @@
 #todomvc-test
 
-1. You should have Python with pip installed, then you have to install Selenium2Library: pip install robotframework-selenium2library
-2. Then from directory todomvc-test run: "pybot ." to run all suites OR "pybot -s baseTest ."  to run specific test suite (baseTest.txt in this example)
-3. Formatted test results are presented in report.html
+Prerequisites: FireFox, Python and pip are installed
+
+1. Install Selenium2Library: pip install robotframework-selenium2library
+2. Run tests from directory todomvc-test: use "pybot ." to run all suites OR "pybot -s baseTest ." to run specific test suite (baseTest.txt in this example)
+3. Review results: see report.html
 
 Please, enjoy! 
